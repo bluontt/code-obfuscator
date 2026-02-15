@@ -1,0 +1,38 @@
+{
+  "name": "code-obfuscator",
+  "version": "0.1.0",
+  "description": "CLI obfuscator: pass a file path, auto-detect language, obfuscate with appropriate settings",
+  "bin": {
+    "obfuscate": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "obfuscate": "node dist/cli.js",
+    "dev": "tsc && node dist/cli.js",
+    "prepublishOnly": "npm run build"
+  },
+  "files": ["dist", "README.md"],
+  "keywords": [
+    "obfuscator",
+    "cli",
+    "javascript",
+    "obfuscation"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/babel__generator": "^7.27.0",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.23.0",
+    "@babel/parser": "^7.23.0",
+    "@babel/traverse": "^7.23.0",
+    "@babel/types": "^7.23.0"
+  }
+}
