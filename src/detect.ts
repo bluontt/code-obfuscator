@@ -72,5 +72,5 @@ export function detectLanguage(filePath: string, readShebang = true): SupportedL
 }
 
 export function getSupportedExtensions(): string[] {
-  return Object.keys(EXT_MAP);
+  return [...Object.keys(EXT_MAP)].sort();
 }

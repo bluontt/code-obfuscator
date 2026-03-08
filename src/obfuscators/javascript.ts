@@ -18,10 +18,16 @@ function encodeStringLiteral(value: string): string {
  * Obfuscate JavaScript/TypeScript source: rename identifiers, encode strings, minify.
  */
 export function obfuscateJavaScript(source: string, options: ObfuscatorOptions): string {
-  const ast = parser.parse(source, {
-    sourceType: "module",
-    plugins: ["typescript"],
-  });
+  let ast;
+  try {
+    ast = parser.parse(source, {
+      sourceType: "module",
+      plugins: ["typescript"],
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new Error(`Failed to parse JavaScript/TypeScript: ${msg}`);
+  }
 
   const reserved = new Set(["undefined", "null", "true", "false", "this", "arguments", "super", "console", "window", "document", "global", "process", "require", "exports", "module"]);
   const renameMap = new WeakMap<object, string>();

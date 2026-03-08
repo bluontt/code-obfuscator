@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { resolve, dirname, basename, extname } from "node:path";
 import type { SupportedLang } from "./detect.js";
 import { detectLanguage, getSupportedExtensions, SUPPORTED_LANGS } from "./detect.js";
@@ -69,9 +69,9 @@ const COMPILED_LANGS: SupportedLang[] = ["rust", "c", "cpp"];
 async function main(): Promise<void> {
   let { inputPaths, outPath, lang: langOverride, options } = parseArgs(process.argv);
 
-  if (langOverride !== null && langOverride !== undefined) {
-    const normalized = langOverride.toLowerCase();
-    if (!SUPPORTED_LANGS.includes(normalized as SupportedLang)) {
+  if (langOverride != null) {
+    const normalized = langOverride.toLowerCase().trim();
+    if (normalized.length === 0 || !SUPPORTED_LANGS.includes(normalized as SupportedLang)) {
       console.error(`Error: invalid --lang "${langOverride}".`);
       console.error(`Valid values: ${SUPPORTED_LANGS.join(", ")}`);
       process.exit(1);
@@ -92,6 +92,10 @@ async function main(): Promise<void> {
   for (const p of resolvedPaths) {
     if (!existsSync(p)) {
       console.error(`Error: file not found: ${p}`);
+      process.exit(1);
+    }
+    if (!statSync(p).isFile()) {
+      console.error(`Error: path is a directory, not a file: ${p}`);
       process.exit(1);
     }
   }
@@ -119,6 +123,10 @@ async function main(): Promise<void> {
     const firstBase = basename(resolvedPaths[0], extname(resolvedPaths[0])) + "-secured";
     const outFileName = firstBase + binaryExt;
     const outResolved = outPath ? resolve(outPath) : resolve(dirname(resolvedPaths[0]), outFileName);
+    if (existsSync(outResolved) && statSync(outResolved).isDirectory()) {
+      console.error(`Error: output path is a directory, please specify a file path: ${outResolved}`);
+      process.exit(1);
+    }
     try {
       await ensureDependency(lang);
       runSecureCommand(resolvedPaths, outResolved, lang);
@@ -140,6 +148,16 @@ async function main(): Promise<void> {
       ["rust", "c", "cpp", "csharp"].includes(lang) ? baseSecured + binaryExt : baseSecured + extname(resolved);
     const outResolved =
       resolvedPaths.length === 1 && outPath !== null ? resolve(outPath) : resolve(dirname(resolved), outFileName);
+
+    if (
+      resolvedPaths.length === 1 &&
+      outPath !== null &&
+      existsSync(outResolved) &&
+      statSync(outResolved).isDirectory()
+    ) {
+      console.error(`Error: output path is a directory, please specify a file path: ${outResolved}`);
+      process.exit(1);
+    }
 
     try {
       if (lang === "javascript" || lang === "typescript") {
